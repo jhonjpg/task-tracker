@@ -1,18 +1,21 @@
 {
-  "name": "task-todo-app",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
-  },
-  "dependencies": {
-    "expo": "~54.0.33",
-    "expo-status-bar": "~3.0.9",
-    "react": "19.1.0",
-    "react-native": "0.81.5"
-  },
-  "private": true
+    "name": "task-todo-app",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "start": "/usr/local/bin/node ./node_modules/.bin/expo start",
+        "android": "expo start --android",
+        "ios": "expo start --ios",
+        "web": "expo start --web"
+    },
+    "dependencies": {
+        "expo": "^55.0.13",
+        "expo-status-bar": "~55.0.5",
+        "react": "19.2.0",
+        "react-native": "0.83.4"
+    },
+    "private": true,
+    "devDependencies": {
+        "@expo/cli": "^55.0.23"
+    }
 }

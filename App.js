@@ -9,106 +9,116 @@ import {
 } from 'react-native';
 
 export default function App() {
-  // Step 1: Add state
   const [enteredTask, setEnteredTask] = useState('');
   const [tasks, setTasks] = useState([]);
 
-  // Step 4: Logic
   const addTaskHandler = () => {
     if (enteredTask.trim().length === 0) return;
-
-    // Add task to array
     setTasks((currentTasks) => [...currentTasks, enteredTask]);
-    
-    // Clear input
     setEnteredTask('');
   };
 
+  // NEW: Delete Logic
+  const deleteTaskHandler = (index) => {
+    setTasks((currentTasks) => {
+      return currentTasks.filter((task, i) => i !== index);
+    });
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Step 2: Input */}
+    <View style={styles.appContainer}>
       <View style={styles.inputContainer}>
         <TextInput
-          placeholder="New Task..."
+          placeholder="New task..."
           style={styles.textInput}
           onChangeText={(text) => setEnteredTask(text)}
           value={enteredTask}
         />
-
-        {/* Step 3: Button */}
         <Pressable 
-          onPress={addTaskHandler} 
           style={({ pressed }) => [
             styles.button, 
             pressed && styles.buttonPressed
-          ]}
+          ]} 
+          onPress={addTaskHandler}
         >
           <Text style={styles.buttonText}>ADD</Text>
         </Pressable>
       </View>
 
-      {/* Step 5: Render list */}
-      <ScrollView style={styles.listContainer}>
-        {tasks.map((task, index) => (
-          <View key={index} style={styles.listItem}>
-            <Text style={styles.itemText}>{task}</Text>
-          </View>
-        ))}
-      </ScrollView>
+      <View style={styles.listContainer}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {tasks.map((task, index) => (
+            /* Wrap each item in Pressable to make it deletable */
+            <Pressable 
+              key={index} 
+              onPress={() => deleteTaskHandler(index)}
+              style={({ pressed }) => [pressed && styles.pressedItem]}
+            >
+              <View style={styles.taskItem}>
+                <Text style={styles.taskText}>{task}</Text>
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  appContainer: {
     flex: 1,
-    paddingTop: 60,
+    paddingTop: 70,
     paddingHorizontal: 20,
-    backgroundColor: '#f4f4f4',
+    backgroundColor: '#ffffff',
   },
   inputContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
   },
   textInput: {
-    flex: 1,
+    width: '75%',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    marginRight: 10,
-    backgroundColor: '#fff',
+    borderColor: '#e2e2e2',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
   },
   button: {
     backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    elevation: 2,
+    padding: 12,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 70,
   },
   buttonPressed: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
+    color: '#ffffff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 14,
   },
   listContainer: {
-    marginTop: 10,
+    flex: 1,
   },
-  listItem: {
+  taskItem: {
+    backgroundColor: '#f0f0f0',
     padding: 15,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#eee',
     borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#007AFF',
   },
-  itemText: {
+  pressedItem: {
+    opacity: 0.5,
+  },
+  taskText: {
     fontSize: 16,
-    color: '#333',
+    color: '#333333',
   },
 });

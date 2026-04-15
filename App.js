@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -7,38 +7,76 @@ import {
   Text, 
   ScrollView 
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
   const [enteredTask, setEnteredTask] = useState('');
   const [tasks, setTasks] = useState([]);
 
+  // --- PERSISTENCE LOGIC ---
+
+  // Load data on startup
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  // Save data whenever the tasks array changes
+  useEffect(() => {
+    saveTasks(tasks);
+  }, [tasks]);
+
+  const saveTasks = async (tasksToSave) => {
+    try {
+      const jsonValue = JSON.stringify(tasksToSave);
+      await AsyncStorage.setItem('@task_list', jsonValue);
+    } catch (e) {
+      console.log('Error saving data', e);
+    }
+  };
+
+  const loadTasks = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('@task_list');
+      if (jsonValue != null) {
+        setTasks(JSON.parse(jsonValue));
+      }
+    } catch (e) {
+      console.log('Error loading data', e);
+    }
+  };
+
+  // --- HANDLERS ---
+
   const addTaskHandler = () => {
     if (enteredTask.trim().length === 0) return;
-    setTasks((currentTasks) => [...currentTasks, enteredTask]);
+
+    setTasks((currentTasks) => [
+      ...currentTasks,
+      { text: enteredTask, id: Math.random().toString() }
+    ]);
+    
     setEnteredTask('');
   };
 
-  // NEW: Delete Logic
-  const deleteTaskHandler = (index) => {
+  const deleteTaskHandler = (id) => {
     setTasks((currentTasks) => {
-      return currentTasks.filter((task, i) => i !== index);
+      return currentTasks.filter((task) => task.id !== id);
     });
   };
 
   return (
     <View style={styles.appContainer}>
       <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="New task..."
-          style={styles.textInput}
-          onChangeText={(text) => setEnteredTask(text)}
-          value={enteredTask}
-        />
+        <TextInput 
+  placeholder="What needs doing?"
+  style={styles.textInput} 
+  onChangeText={setEnteredTask} 
+  value={enteredTask} 
+  onSubmitEditing={addTaskHandler} // <--- Add this line
+  returnKeyType="done"             // <--- Changes the keyboard button to "Done" or "Enter"
+/>
         <Pressable 
-          style={({ pressed }) => [
-            styles.button, 
-            pressed && styles.buttonPressed
-          ]} 
+          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} 
           onPress={addTaskHandler}
         >
           <Text style={styles.buttonText}>ADD</Text>
@@ -47,15 +85,14 @@ export default function App() {
 
       <View style={styles.listContainer}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {tasks.map((task, index) => (
-            /* Wrap each item in Pressable to make it deletable */
+          {tasks.map((task) => (
             <Pressable 
-              key={index} 
-              onPress={() => deleteTaskHandler(index)}
+              key={task.id} 
+              onPress={() => deleteTaskHandler(task.id)}
               style={({ pressed }) => [pressed && styles.pressedItem]}
             >
               <View style={styles.taskItem}>
-                <Text style={styles.taskText}>{task}</Text>
+                <Text style={styles.taskText}>{task.text}</Text>
               </View>
             </Pressable>
           ))}
@@ -95,17 +132,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 70,
   },
-  buttonPressed: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  listContainer: {
-    flex: 1,
-  },
+  buttonPressed: { opacity: 0.6 },
+  buttonText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
+  listContainer: { flex: 1 },
   taskItem: {
     backgroundColor: '#f0f0f0',
     padding: 15,
@@ -114,11 +143,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: '#007AFF',
   },
-  pressedItem: {
-    opacity: 0.5,
-  },
-  taskText: {
-    fontSize: 16,
-    color: '#333333',
-  },
+  pressedItem: { opacity: 0.5 },
+  taskText: { fontSize: 16, color: '#333333' },
 });
